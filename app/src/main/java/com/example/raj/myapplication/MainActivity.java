@@ -54,7 +54,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
-    boolean mediaMan=false;
+    boolean mediaMan = false;
 
     TextView textView;
     ProgressBar progressBar;
@@ -67,15 +67,18 @@ public class MainActivity extends AppCompatActivity {
     GifImageView ivscan;
     //int wDiff,hDiff;
 
-    ViewGroup.LayoutParams params ;
+    ViewGroup.LayoutParams params;
     ImageView bbiv;
-    Integer CAM_REQ=1, FILE_REQ=0;
+    Integer CAM_REQ = 1, FILE_REQ = 0;
+    String filePath;
+    Map config;
     private String takenPicFileName;
     private Uri uriCamPic;
-    String filePath;
     private String urlToDeepAi;
     private List<Caption> selected = new ArrayList<Caption>();
-    Map config;
+    private int ih,iw;
+    private int iW,iH;
+
     //    EditText editText;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,69 +86,69 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         //setSupportActionBar(toolbar);
-         Map config = new HashMap();
-       config.put("cloud_name", "dgxykz1au");
+        Map config = new HashMap();
+        config.put("cloud_name", "dgxykz1au");
 //
-        if(mediaMan==false) {
+        if (mediaMan == false) {
             MediaManager.init(this, config);
-            mediaMan=true;
+            mediaMan = true;
 
         }
-        textView= findViewById(R.id.textView);
-        imageView=findViewById(R.id.imageView);
-        bbiv=findViewById(R.id.bb);
+        textView = findViewById(R.id.textView);
+        imageView = findViewById(R.id.imageView);
+        bbiv = findViewById(R.id.bb);
         ivscan = findViewById(R.id.scan);
         params = ivscan.getLayoutParams();
         ivscan.setVisibility(View.INVISIBLE);
         ivscan.setAlpha((float) 0.1);
-        progressBar= findViewById(R.id.progressBar);
-        progressBarR= findViewById(R.id.progressBarR);
-       FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        progressBar = findViewById(R.id.progressBar);
+        progressBarR = findViewById(R.id.progressBarR);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 imageSelect();
                 textView.setTextSize(30);
-         }
+            }
         });
     }
 
-    private void imageSelect(){
-        final CharSequence[] options = {"Camera", "Storage","Exit"};
-        AlertDialog.Builder builder=new AlertDialog.Builder(MainActivity.this);
+    private void imageSelect() {
+        final CharSequence[] options = {"Camera", "Storage", "Exit"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("Select Image");
         builder.setItems(options, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (options[which].equals(("Camera"))){
-                    Intent intent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                if (options[which].equals(("Camera"))) {
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     Date date = new Date();
                     DateFormat df = new SimpleDateFormat("-mm-ss");
-                    String picFileName = "look"+ df.format(date) + ".jpg";
-                    File outputPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) ;
+                    String picFileName = "look" + df.format(date) + ".jpg";
+                    File outputPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
                     File capturedFile = null;
                     try {
-                        capturedFile = File.createTempFile(picFileName,".jpg", outputPath);
+                        capturedFile = File.createTempFile(picFileName, ".jpg", outputPath);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    takenPicFileName=capturedFile.getAbsolutePath();
-                    uriCamPic=Uri.fromFile(capturedFile);
+                    takenPicFileName = capturedFile.getAbsolutePath();
+                    uriCamPic = Uri.fromFile(capturedFile);
 
-                    String authorities = getApplicationContext().getPackageName()+".provider";
-                    uriCamPic= FileProvider.getUriForFile(MainActivity.this,authorities,capturedFile);
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT,uriCamPic);
+                    String authorities = getApplicationContext().getPackageName() + ".provider";
+                    uriCamPic = FileProvider.getUriForFile(MainActivity.this, authorities, capturedFile);
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, uriCamPic);
 
-                    Log.i("onActivityRESULT","im before cam req if");
-                    startActivityForResult(intent,CAM_REQ);
+                    Log.i("onActivityRESULT", "im before cam req if");
+                    startActivityForResult(intent, CAM_REQ);
 
 
-                }else  if (options[which].equals(("Storage"))){
-                    Intent intent=new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                } else if (options[which].equals(("Storage"))) {
+                    Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                     intent.setType("image/*");
-                    startActivityForResult(intent.createChooser(intent, "Select Image"),FILE_REQ);
+                    startActivityForResult(intent.createChooser(intent, "Select Image"), FILE_REQ);
 
-                }else if(options[which].equals(("Exit"))){
+                } else if (options[which].equals(("Exit"))) {
                     dialog.dismiss();
                 }
 
@@ -161,15 +164,13 @@ public class MainActivity extends AppCompatActivity {
         textView.setText("Processing...");
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == CAM_REQ) {
-                Log.i("onActivityRESULT","im inside cam req if");
+                Log.i("onActivityRESULT", "im inside cam req if");
                 Uri uri = null;
-                if (data != null)
-                {
+                if (data != null) {
 
                     uri = data.getData();
                 }
-                if (uri == null && takenPicFileName != null)
-                {
+                if (uri == null && takenPicFileName != null) {
                     uri = Uri.fromFile(new File(takenPicFileName));
                 }
                 File file = new File(takenPicFileName);
@@ -190,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
                 int cameraImageWidth = bmOptions.outHeight;
                 int cameraImageHeight = bmOptions.outWidth;
 
-                int scaleFactor = Math.min(cameraImageWidth/targetImageViewWidth, cameraImageHeight/targetImageViewHeight);
+                int scaleFactor = Math.min(cameraImageWidth / targetImageViewWidth, cameraImageHeight / targetImageViewHeight);
                 bmOptions.inSampleSize = scaleFactor;
                 bmOptions.inJustDecodeBounds = false;
 
@@ -199,20 +200,23 @@ public class MainActivity extends AppCompatActivity {
                 imageView.setImageBitmap(processedBitmp);
                 //imageView.setImageDrawable(Drawable.createFromPath(takenPicFileName));
                 filePath = takenPicFileName;
+            } else {
+                Uri imageUri = data.getData();
+                imageView.setImageURI(imageUri);
+                filePath = getRealPathFromURI(imageUri);
             }
+        } else
+            Log.i("onActivityRESULT", "im inside onactR result not ok");
 
-        else {
-            Uri imageUri = data.getData();
-            imageView.setImageURI(imageUri);
-            filePath=getRealPathFromURI(imageUri);
-        }
-    }
-    else
-            Log.i("onActivityRESULT","im inside onactR result not ok");
+        ih=imageView.getMeasuredHeight();//height of imageView
+        iw=imageView.getMeasuredWidth();//width of imageView
+        iH=imageView.getDrawable().getIntrinsicHeight();//original height of underlying image
+        iW=imageView.getDrawable().getIntrinsicWidth();//original width of underlying image
 
-
-        params.height=imageView.getDrawable().getIntrinsicHeight();
-        params.width=imageView.getDrawable().getIntrinsicWidth();
+        if (ih/iH<=iw/iW) iw=iW*ih/iH;//rescaled width of image within ImageView
+        else ih= iH*iw/iW;//rescaled height of image within ImageView
+        params.height = ih;
+        params.width = iw;
         //ivscan.setMaxWidth(imageView.getDrawable().getMinimumWidth());
         ivscan.setLayoutParams(params);
 
@@ -221,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String getRealPathFromURI(Uri imageUri) {
-        String[] proj = { MediaStore.Images.Media.DATA };
+        String[] proj = {MediaStore.Images.Media.DATA};
         CursorLoader loader = new CursorLoader(MainActivity.this, imageUri, proj, null, null, null);
         Cursor cursor = loader.loadInBackground();
         int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
@@ -232,14 +236,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void goingForward() {
-        Log.i("goingForward","here we start tomo" );
+        Log.i("goingForward", "here we start tomo");
         //editText = findViewById(R.id.editText);
         //editText.setVisibility(View.INVISIBLE);
 
         couldinary();
-
-
-
 
 
     }
@@ -256,18 +257,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<CaptionItem> call, Response<CaptionItem> response) {
                 CaptionItem repos = response.body();
-               // if(!repos.isEmpty())
+                // if(!repos.isEmpty())
                 //Toast.makeText(MainActivity.this, repos.size(),Toast.LENGTH_SHORT).show();
                 //Log.i("return ai tomo response",response.body()+"       "+repos.toString() );
-                Log.i("tomo pretty  gson",new GsonBuilder().setPrettyPrinting().create().toJson(response));
+                Log.i("tomo pretty  gson", new GsonBuilder().setPrettyPrinting().create().toJson(response));
                 manipulateResults(repos);
 
             }
 
             @Override
             public void onFailure(Call<CaptionItem> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "error :("+t.getMessage(),Toast.LENGTH_SHORT).show();
-                Log.i("return from ai tomo",t.getMessage() );
+                Toast.makeText(MainActivity.this, "error :(" + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.i("return from ai tomo", t.getMessage());
             }
         });
     }
@@ -275,17 +276,17 @@ public class MainActivity extends AppCompatActivity {
     private void manipulateResults(CaptionItem repos) {
         Output reposOutput = repos.getOutput();
         List<Caption> captions = reposOutput.getCaptions();
-        int i=0;
-        Log.i("return list tomo",""+captions.size() );
-        for (Caption c:captions
-             ) {
+        int i = 0;
+        Log.i("return list tomo", "" + captions.size());
+        for (Caption c : captions
+                ) {
 
-            if(i>10||c.getConfidence()<0)
+            if (i > 10 || c.getConfidence() < 0)
                 break;
             selected.add(c);
             i++;
-            Log.i("return list tomo",""+c.getConfidence() );
-            
+            Log.i("return list tomo", "" + c.getConfidence());
+
         }
         showInTextView();
     }
@@ -294,30 +295,31 @@ public class MainActivity extends AppCompatActivity {
 
         bbiv.setVisibility(View.VISIBLE);
         bbBitmap = Bitmap.createBitmap(
-                imageView.getDrawable().getIntrinsicWidth(), // Width
-                imageView.getDrawable().getIntrinsicHeight(),
+                iw, // Width
+                ih,
                 Bitmap.Config.ARGB_8888 // Config
         );
         canvas = new Canvas(bbBitmap);
         paint = new Paint();
         paintText = new Paint();
-        paintText.setColor(Color.BLACK);
-        paintText.setTextSize(260f);
-        paint.setStrokeWidth(10f);
+        paintText.setColor(Color.YELLOW);
+        paintText.setTextSize(40f);
+        paint.setStrokeWidth(6f);
         paint.setStrokeJoin(Paint.Join.ROUND);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.RED);
+        paint.setColor(Color.GREEN);
         paint.setAntiAlias(true);
 
         textView = findViewById(R.id.textView);
-        String text="";
-        for (Caption c:selected
-             ) {
-            text= text+"\n"+c.getCaption();
-            showBoundingBox(c.getBoundingBox(),c.getCaption());
-             //Log.i("boundry ",c.getBoundingBox().toString() );
+        String text = "";
+        for (Caption c : selected
+                ) {
+            //text = text + "\n" + c.getCaption();
+            showBoundingBox(c.getBoundingBox(), c.getCaption());
+            //Log.i("boundry ",c.getBoundingBox().toString() );
         }
 
+        bbiv.setLayoutParams(imageView.getLayoutParams());
         bbiv.setImageBitmap(bbBitmap);
 
         progressBar.setVisibility(View.INVISIBLE);
@@ -332,14 +334,20 @@ public class MainActivity extends AppCompatActivity {
     private void showBoundingBox(List<Double> boundingBox, String caption) {
 
         Rect rectangle = new Rect(
-                boundingBox.get(1).intValue(), // Left
-                boundingBox.get(0).intValue(), // Top
-                (boundingBox.get(1).intValue()+boundingBox.get(3).intValue()), // Right
-                (boundingBox.get(0).intValue()+boundingBox.get(2).intValue())// Bottom
+                (int)(boundingBox.get(0).intValue()*iw/iW*1.6), // Left
+                (int)(boundingBox.get(1).intValue()*ih/iH*1.6), // Top
+                (int)(((boundingBox.get(0).intValue() + boundingBox.get(2).intValue()))*iw/iW*1.6), // Right
+                (int)(((boundingBox.get(1).intValue() + boundingBox.get(3).intValue()))*ih/iH*1.6)// Bottom
         );
-        canvas.drawRect(rectangle,paint);
-        canvas.drawText(caption, boundingBox.get(1).intValue(), // Left
-                boundingBox.get(0).intValue(), paintText);
+//        Rect rectangle = new Rect(
+//                0, // Left
+//                0, // Top
+//                iw, // Right
+//                ih// Bottom
+//        );
+        canvas.drawRect(rectangle, paint);
+        canvas.drawText(caption, (int)(boundingBox.get(0).intValue()*iw/iW*1.6)+8, // Left
+                (int)(boundingBox.get(1).intValue()*ih/iH*1.6)-4, paintText);
 
     }
 
@@ -349,8 +357,8 @@ public class MainActivity extends AppCompatActivity {
 //
 //        MediaManager.init(this, config);
 
-      //  Toast.makeText(MainActivity.this, " before upload Start "+filePath,Toast.LENGTH_SHORT).show();
-        Log.i("before upload tomo ",filePath );
+        //  Toast.makeText(MainActivity.this, " before upload Start "+filePath,Toast.LENGTH_SHORT).show();
+        Log.i("before upload tomo ", filePath);
         //String decodedFilePath=decodeFile(filePath);
         //Log.i("decoded tomo",decodedFilePath );
         String requestId = MediaManager.get().upload(filePath).unsigned("nwjvlo14").callback(new UploadCallback() {
@@ -358,26 +366,27 @@ public class MainActivity extends AppCompatActivity {
             public void onStart(String requestId) {
                 progressBar.setVisibility(View.VISIBLE);
                 progressBarR.setVisibility(View.VISIBLE);
-                ivscan.setVisibility(View.VISIBLE);
+                ivscan.setVisibility(View.INVISIBLE);
             }
 
             @Override
             public void onProgress(String requestId, long bytes, long totalBytes) {
-                Double progress = (double) bytes/totalBytes;
+                Double progress = (double) bytes / totalBytes;
 
-                progressBar.setProgress((int)Math.rint(progress*100));
-                progressBarR.setProgress((int)Math.rint(progress*100));
+                progressBar.setProgress((int) Math.rint(progress * 100));
+                progressBarR.setProgress((int) Math.rint(progress * 100));
 
                 //Toast.makeText(MainActivity.this, "upload on Progress"+progress,Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onSuccess(String requestId, Map resultData) {
-                progressBar.setVisibility(View.INVISIBLE);Log.i("return from map tomo","Success" );
+                progressBar.setVisibility(View.INVISIBLE);
+                Log.i("return from map tomo", "Success");
                 printMap(resultData);
 
                 //urlToDeepAi=(String)resultData.get("url");
-                Log.i("return from link tomo",urlToDeepAi+"");
+                Log.i("return from link tomo", urlToDeepAi + "");
                 callDeepAi();
             }
 
@@ -397,14 +406,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     private void printMap(Map resultData) {
         Iterator it = resultData.entrySet().iterator();
         while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry)it.next();
-            if(pair.getKey().toString().equals("url"))
-                urlToDeepAi=pair.getValue().toString();
-            Log.i("return from map tomo",pair.getKey() + " = " + pair.getValue());
+            Map.Entry pair = (Map.Entry) it.next();
+            if (pair.getKey().toString().equals("url"))
+                urlToDeepAi = pair.getValue().toString();
+            Log.i("return from map tomo", pair.getKey() + " = " + pair.getValue());
             it.remove();
         }
     }

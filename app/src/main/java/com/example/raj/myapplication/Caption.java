@@ -7,11 +7,10 @@ import java.util.List;
 
 public class Caption {
 
-    private String caption;
-
     @SerializedName("bounding_box")
     @Expose
     public List<Double> boundingBox = null;
+    private String caption;
     private Double confidence;
 
     public String getCaption() {

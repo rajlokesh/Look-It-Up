@@ -24,6 +24,7 @@ public class CaptionItem {
     }
 
 }
+
 class Output {
 
     private List<Caption> captions = null;
