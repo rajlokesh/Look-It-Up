@@ -24,6 +24,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -76,19 +78,22 @@ public class MainActivity extends AppCompatActivity {
     private Uri uriCamPic;
     private String urlToDeepAi;
     private List<Caption> selected = new ArrayList<Caption>();
-    private int ih,iw;
-    private int iW,iH;
+    private int ih, iw;
+    private int iW, iH;
 
     //    EditText editText;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
         //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         //setSupportActionBar(toolbar);
+
         Map config = new HashMap();
         config.put("cloud_name", "dgxykz1au");
-//
         if (mediaMan == false) {
             MediaManager.init(this, config);
             mediaMan = true;
@@ -108,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 imageSelect();
+                bbiv.setVisibility(View.INVISIBLE);
                 textView.setTextSize(30);
             }
         });
@@ -208,13 +214,13 @@ public class MainActivity extends AppCompatActivity {
         } else
             Log.i("onActivityRESULT", "im inside onactR result not ok");
 
-        ih=imageView.getMeasuredHeight();//height of imageView
-        iw=imageView.getMeasuredWidth();//width of imageView
-        iH=imageView.getDrawable().getIntrinsicHeight();//original height of underlying image
-        iW=imageView.getDrawable().getIntrinsicWidth();//original width of underlying image
+        ih = imageView.getMeasuredHeight();//height of imageView
+        iw = imageView.getMeasuredWidth();//width of imageView
+        iH = imageView.getDrawable().getIntrinsicHeight();//original height of underlying image
+        iW = imageView.getDrawable().getIntrinsicWidth();//original width of underlying image
 
-        if (ih/iH<=iw/iW) iw=iW*ih/iH;//rescaled width of image within ImageView
-        else ih= iH*iw/iW;//rescaled height of image within ImageView
+        if (ih / iH <= iw / iW) iw = iW * ih / iH;//rescaled width of image within ImageView
+        else ih = iH * iw / iW;//rescaled height of image within ImageView
         params.height = ih;
         params.width = iw;
         //ivscan.setMaxWidth(imageView.getDrawable().getMinimumWidth());
@@ -320,8 +326,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         bbiv.setLayoutParams(imageView.getLayoutParams());
-        bbiv.setImageBitmap(bbBitmap);
 
+        bbiv.setImageBitmap(bbBitmap);
+        bbiv.setVisibility(View.VISIBLE);
         progressBar.setVisibility(View.INVISIBLE);
         progressBarR.setVisibility(View.INVISIBLE);
         ivscan.setVisibility(View.INVISIBLE);
@@ -333,11 +340,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void showBoundingBox(List<Double> boundingBox, String caption) {
 
+
         Rect rectangle = new Rect(
-                (int)(boundingBox.get(0).intValue()*iw/iW*1.6), // Left
-                (int)(boundingBox.get(1).intValue()*ih/iH*1.6), // Top
-                (int)(((boundingBox.get(0).intValue() + boundingBox.get(2).intValue()))*iw/iW*1.6), // Right
-                (int)(((boundingBox.get(1).intValue() + boundingBox.get(3).intValue()))*ih/iH*1.6)// Bottom
+                (int) (boundingBox.get(0).intValue() * iw / iW * 1.6), // Left
+                (int) (boundingBox.get(1).intValue() * ih / iH * 1.6), // Top
+                (int) (((boundingBox.get(0).intValue() + boundingBox.get(2).intValue())) * iw / iW * 1.6), // Right
+                (int) (((boundingBox.get(1).intValue() + boundingBox.get(3).intValue())) * ih / iH * 1.6)// Bottom
         );
 //        Rect rectangle = new Rect(
 //                0, // Left
@@ -346,8 +354,8 @@ public class MainActivity extends AppCompatActivity {
 //                ih// Bottom
 //        );
         canvas.drawRect(rectangle, paint);
-        canvas.drawText(caption, (int)(boundingBox.get(0).intValue()*iw/iW*1.6)+8, // Left
-                (int)(boundingBox.get(1).intValue()*ih/iH*1.6)-4, paintText);
+        canvas.drawText(caption, (int) (boundingBox.get(0).intValue() * iw / iW * 1.6) + 8, // Left
+                (int) (boundingBox.get(1).intValue() * ih / iH * 1.6) - 4, paintText);
 
     }
 
