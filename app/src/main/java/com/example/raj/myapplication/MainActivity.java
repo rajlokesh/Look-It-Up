@@ -11,10 +11,12 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.speech.tts.TextToSpeech;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
@@ -45,6 +47,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import pl.droidsonroids.gif.GifImageView;
@@ -57,6 +60,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity {
 
     boolean mediaMan = false;
+
+    TextToSpeech tts;
+
 
     TextView textView;
     ProgressBar progressBar;
@@ -89,8 +95,15 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
+        tts =new TextToSpeech(MainActivity.this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                tts.setLanguage(Locale.US);
+            }
+        });
         //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         //setSupportActionBar(toolbar);
+
 
         Map config = new HashMap();
         config.put("cloud_name", "dgxykz1au");
@@ -284,6 +297,7 @@ public class MainActivity extends AppCompatActivity {
         List<Caption> captions = reposOutput.getCaptions();
         int i = 0;
         Log.i("return list tomo", "" + captions.size());
+        selected.clear();
         for (Caption c : captions
                 ) {
 
@@ -318,11 +332,26 @@ public class MainActivity extends AppCompatActivity {
 
         textView = findViewById(R.id.textView);
         String text = "";
+
         for (Caption c : selected
                 ) {
             //text = text + "\n" + c.getCaption();
             showBoundingBox(c.getBoundingBox(), c.getCaption());
             //Log.i("boundry ",c.getBoundingBox().toString() );
+
+            HashMap<String, String> paramSpeak = new HashMap<String, String>();
+            double x = (int) ((((c.getBoundingBox().get(0).intValue() + c.getBoundingBox().get(2).intValue())) * iw / iW * 1.6) - (c.getBoundingBox().get(0).intValue() * iw / iW * 1.6));
+            if(x>iw/2)
+                x=(((c.getBoundingBox().get(0).intValue() + c.getBoundingBox().get(2).intValue())) * iw / iW * 1.6);
+            else
+                x=(c.getBoundingBox().get(0).intValue() * iw / iW * 1.6);
+
+            String m=map(x,0,iw,-1,1);
+            Log.i("pan tomo",m+" x "+x+ " 0 "+iw);
+            paramSpeak.put(TextToSpeech.Engine.KEY_PARAM_PAN,m);
+            tts.speak(c.getCaption(), TextToSpeech.QUEUE_ADD, paramSpeak);
+
+
         }
 
         bbiv.setLayoutParams(imageView.getLayoutParams());
@@ -337,6 +366,14 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+    private String map(double x, double in_min, double in_max, double out_min, double out_max) {
+
+
+        return ((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)+"";
+
+    }
+
 
     private void showBoundingBox(List<Double> boundingBox, String caption) {
 
