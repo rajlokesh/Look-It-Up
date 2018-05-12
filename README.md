@@ -8,11 +8,11 @@
 	Open the app info for the application by dragging the app icon to the top of the screen and provide all permissions listed there.
 	Run the application, you should see a screen like this.
 	
-![alt text](https://photos.app.goo.gl/Ke0hXe4m2mBfNfIW2)
+![alt text](https://res.cloudinary.com/dgxykz1au/image/upload/v1526106022/Screenshot_20180511-215850.png)
 	
 	Click a picture or select a picture from the storage. The picture will be processed and the result will shown as below with bounding boxes around the objects detected and description on the top of it.
 	
-![alt text](https://photos.app.goo.gl/pjhp2qsERmy1VdDm2)
+![alt text](https://res.cloudinary.com/dgxykz1au/image/upload/v1526106030/Screenshot_20180511-220048.png)
 
 	Once you get the above screen the application will start reading out the description of the objects detected will be heard in the direction panned towards the direction where the object is present in the frame.
 
